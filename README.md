@@ -165,3 +165,8 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
   <img src="docs/screens/Player.png" width="400"/>
 </p>
 
+<video width="700" controls>
+  <source src="https://github.com/Udit-Gavasane/LanFlix/releases/download/v1.0/Java.Project.LanFlix.execution.video.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
