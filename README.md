@@ -2,7 +2,7 @@
   <img src="/logo/lanflix2.png" alt="LANFlix Banner" width="700"/>
 </p>
 
-# LANFlix – LAN Movie Streaming System
+# LANFlix – LAN Movie Streaming App
 
 LANFlix is a self-hosted movie streaming application designed to stream video files over a local area network (LAN). It provides a lightweight, efficient, and secure Netflix-like experience entirely offline, enabling users to browse and stream their personal video libraries from a centralized server to multiple client machines without requiring an internet connection or third-party services.
 
