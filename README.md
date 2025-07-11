@@ -148,5 +148,4 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 
 - This project was developed for academic submission and real-world LAN usage scenarios.
 - It is fully functional without internet access after installation and setup.
-- Contributions, forks, and modifications are welcome.
 
