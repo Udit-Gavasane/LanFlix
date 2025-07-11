@@ -2,9 +2,9 @@
   <img src="/logo/lanflix2.png" alt="LANFlix Banner" width="700"/>
 </p>
 
-# LANFlix – LAN Movie Streaming App
+# LanFlix – LAN Movie Streaming App
 
-LANFlix is a self-hosted movie streaming application designed to stream video files over a local area network (LAN). It provides a lightweight, efficient, and secure Netflix-like experience entirely offline, enabling users to browse and stream their personal video libraries from a centralized server to multiple client machines without requiring an internet connection or third-party services.
+LanFlix is a self-hosted movie streaming application designed to stream video files over a local area network (LAN). It provides a lightweight, efficient, and secure Netflix-like experience entirely offline, enabling users to browse and stream their personal video libraries from a centralized server to multiple client machines without requiring an internet connection or third-party services.
 
 ---
 
@@ -24,7 +24,7 @@ LANFlix is a self-hosted movie streaming application designed to stream video fi
 
 ## Overview
 
-LANFlix is structured as a Java-based client-server system using JavaFX for its UI and Java's built-in HTTP server for network communication. The server hosts and streams video files from a shared directory, while clients on the same LAN can browse and stream this content. This system eliminates the need for online services and allows users to retain full control over their media.
+LanFlix is structured as a Java-based client-server system using JavaFX for its UI and Java's built-in HTTP server for network communication. The server hosts and streams video files from a shared directory, while clients on the same LAN can browse and stream this content. This system eliminates the need for online services and allows users to retain full control over their media.
 
 ---
 
@@ -129,14 +129,14 @@ LANFlix is structured as a Java-based client-server system using JavaFX for its 
 
 ## Distribution
 
-LANFlix is available as packaged Windows executables for easy distribution:
+LanFlix is available as packaged Windows executables for easy distribution:
 
 | File                | Description                        |
 |---------------------|------------------------------------|
 | `LanFlixServer.exe` | Install this on the host/server PC |
 | `LanFlixClient.exe` | Install on any LAN-connected client|
 
-To download the latest release, visit the [Releases](https://github.com/Udit-Gavasane/LANFlix/releases) section.
+To download the latest release, visit the [Releases](https://github.com/Udit-Gavasane/LanFlix/releases) section.
 
 Both installers are compatible with Windows 10 and 11.
 
