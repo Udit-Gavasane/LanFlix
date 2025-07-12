@@ -158,10 +158,10 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Screenshots
 
 <p align="center">
-  <img src="docs/screens/Server.png" width="600"/>
-  <img src="docs/screens/Login.png" width="600"/>
-  <img src="docs/screens/Signup.png" width="600"/>
-  <img src="docs/screens/Movies.png" width="600"/>
+  <img src="docs/screens/Server.png" width="500"/>
+  <img src="docs/screens/Login.png" width="500"/>
+  <img src="docs/screens/Signup.png" width="500"/>
+  <img src="docs/screens/Movies.png" width="500"/>
   <img src="docs/screens/Player.png" width="600"/>
 </p>
 
