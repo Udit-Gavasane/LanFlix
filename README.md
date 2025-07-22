@@ -153,3 +153,20 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 - This project was developed for academic submission and real-world LAN usage scenarios.
 - It is fully functional without internet access after installation and setup.
 
+---
+
+## Screenshots
+
+<p align="center">
+  <img src="docs/screens/Server.png" width="800"/>
+  <img src="docs/screens/Login.png" width="800"/>
+  <img src="docs/screens/Signup.png" width="800"/>
+  <img src="docs/screens/Movies.png" width="800"/>
+  <img src="docs/screens/Player.png" width="800"/>
+</p>
+
+<video width="700" controls>
+  <source src="https://github.com/Udit-Gavasane/LanFlix/releases/download/v1.0/Java.Project.LanFlix.execution.video.mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
