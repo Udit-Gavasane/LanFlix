@@ -20,17 +20,20 @@ import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
 
+
+
 public class VideoPlayerPane extends BorderPane {
 
     private int retryCount = 1;
     private static final int MAX_RETRIES = 1;
     private boolean userExitedFullscreen = false;
     private final Label overlayTitleLabel = new Label();
+    private PauseTransition hideControlsTimer = new PauseTransition(Duration.seconds(3));
+
 
     public VideoPlayerPane(String movieUrl, String movieTitle) {
         this(movieUrl, movieTitle, 0);  // default retryCount = 0
     }
-
 
 
     public VideoPlayerPane(String movieUrl, String movieTitle, int retryCount) {
@@ -83,10 +86,21 @@ public class VideoPlayerPane extends BorderPane {
             }
         });
 
-        Slider volumeSlider = new Slider(0, 1, 0.5);
-        mediaPlayer.setVolume(0.5);
+        ProgressBar volumeProgress = new ProgressBar(1.0); // initial volume
+        volumeProgress.setPrefHeight(10);
+        volumeProgress.setPrefWidth(160); // adjust size as needed
+        volumeProgress.setStyle(
+                "-fx-accent: #FF9500; " +
+                        "-fx-control-inner-background: #222; " +
+                        "-fx-background-color: transparent;"
+        );
+
+        Slider volumeSlider = new Slider(0, 1, 1.0);
+        volumeSlider.getStyleClass().add("custom-slider");
+        mediaPlayer.setVolume(1.0);
         volumeSlider.valueProperty().addListener((obs, oldVal, newVal) -> {
             mediaPlayer.setVolume(newVal.doubleValue());
+            volumeProgress.setProgress(newVal.doubleValue());
         });
 
         Label currentTimeLabel = new Label("00:00");
@@ -95,16 +109,54 @@ public class VideoPlayerPane extends BorderPane {
         Label totalTimeLabel = new Label("00:00");
         totalTimeLabel.setStyle("-fx-text-fill: white;");
 
+        // Create the progress bar (fill background)
+        ProgressBar seekProgress = new ProgressBar(0);
+        seekProgress.setMaxWidth(Double.MAX_VALUE);
+        seekProgress.setPrefHeight(10);
+        seekProgress.setPrefWidth(300);
+        seekProgress.setStyle(
+                "-fx-accent: #FF9500; " +
+                        "-fx-control-inner-background: #222; " +
+                        "-fx-background-color: transparent;"
+                        //"-fx-background-insets: -10;"
+        );
+
         Slider seekSlider = new Slider();
+        seekSlider.getStyleClass().add("custom-slider");
         seekSlider.setPrefWidth(300);
         seekSlider.setMin(0);
+
+        // Stack them together
+        StackPane seekBarStack = new StackPane(seekSlider, seekProgress);
+        StackPane.setAlignment(seekProgress, Pos.CENTER_LEFT);
+        StackPane.setAlignment(seekSlider, Pos.CENTER);
+        seekBarStack.setMaxWidth(Double.MAX_VALUE);
+        HBox.setHgrow(seekBarStack, Priority.ALWAYS);
+
+        StackPane volumeBarStack = new StackPane(volumeSlider, volumeProgress);
+        StackPane.setAlignment(volumeProgress, Pos.CENTER_LEFT);
+        StackPane.setAlignment(volumeSlider, Pos.CENTER);
+
+        Label timePopup = new Label("00:00");
+        timePopup.setStyle(
+                "-fx-background-color: #FF9500; " +
+                        "-fx-text-fill: white; " +
+                        "-fx-padding: 4 8 4 8; " +
+                        "-fx-background-radius: 10; " +
+                        "-fx-font-weight: bold;"
+        );
+        timePopup.setVisible(false);
+        timePopup.setMouseTransparent(true);
 
         // Update slider + time
         mediaPlayer.currentTimeProperty().addListener((obs, oldTime, newTime) -> {
             Duration total = mediaPlayer.getTotalDuration();
             if (total != null && !total.isUnknown()) {
                 if (!seekSlider.isValueChanging()) {
-                    seekSlider.setValue(newTime.toSeconds() / total.toSeconds() * 100);
+                    //seekSlider.setValue(newTime.toSeconds() / total.toSeconds() * 100);
+                    double progress = newTime.toSeconds() / total.toSeconds();
+                    seekSlider.setValue(progress * 100);
+                    seekProgress.setProgress(progress);
                 }
                 currentTimeLabel.setText(formatTime(newTime));
                 totalTimeLabel.setText(formatTime(total));
@@ -112,6 +164,20 @@ public class VideoPlayerPane extends BorderPane {
         });
 
         seekSlider.setOnMousePressed(e -> mediaPlayer.pause());
+        seekSlider.setOnMouseDragged(e -> {
+            Duration total = mediaPlayer.getTotalDuration();
+            if (total != null && !total.isUnknown()) {
+                double seekTime = seekSlider.getValue() / 100.0 * total.toSeconds();
+                timePopup.setText(formatTime(Duration.seconds(seekTime)));
+                timePopup.setVisible(true);
+
+                // Optional: position near thumb/mouse
+                timePopup.setTranslateX(e.getSceneX() - getScene().getWidth() / 2);
+                timePopup.setTranslateY(5); // 40px above slider
+            }
+        });
+
+
         seekSlider.setOnMouseReleased(e -> {
             Duration total = mediaPlayer.getTotalDuration();
             if (total != null && !total.isUnknown()) {
@@ -119,6 +185,7 @@ public class VideoPlayerPane extends BorderPane {
                 mediaPlayer.seek(Duration.seconds(seekTime));
             }
             mediaPlayer.play();
+            timePopup.setVisible(false);
         });
 
         // Back button
@@ -136,15 +203,22 @@ public class VideoPlayerPane extends BorderPane {
         });
 
         // Control layout
-        HBox controls = new HBox(15, playPauseBtn, currentTimeLabel, seekSlider, totalTimeLabel, backBtn);
+        HBox controls = new HBox(15, playPauseBtn, currentTimeLabel, seekBarStack, totalTimeLabel, volumeBarStack, backBtn);
         controls.setStyle("-fx-background-color: rgba(20, 20, 20, 0.8); -fx-border-color: #444;");
         HBox.setHgrow(seekSlider, Priority.ALWAYS);
         controls.setAlignment(Pos.CENTER);
         controls.setPadding(new Insets(10));
         controls.setStyle("-fx-background-color: #222; -fx-border-color: #444;");
 
-        setCenter(mediaView);
-        setBottom(controls);
+
+        VBox controlContainer = new VBox(5);
+        controlContainer.setAlignment(Pos.BOTTOM_CENTER);
+        controlContainer.setPadding(new Insets(10));
+        controlContainer.getChildren().addAll(timePopup, controls);
+
+        //setCenter(mediaView);
+        //setBottom(controls);
+
 
         mediaPlayer.play();
 
@@ -168,13 +242,28 @@ public class VideoPlayerPane extends BorderPane {
 
 
         StackPane overlay = new StackPane();
-        overlay.getChildren().addAll(mediaView, nowPlayingLabel);  // Media + overlay label
+        // Show controls when mouse moves
+        overlay.setOnMouseMoved(e -> {
+            controls.setVisible(true);
+            controls.setManaged(true);
+
+            hideControlsTimer.stop();
+            hideControlsTimer.setOnFinished(event -> {
+                controls.setVisible(false);
+                controls.setManaged(false);
+            });
+            hideControlsTimer.play();
+        });
+
+        overlay.getChildren().addAll(mediaView, nowPlayingLabel, controlContainer);  // Media + overlay label
+        StackPane.setAlignment(controlContainer, Pos.TOP_CENTER);
         setCenter(overlay);
 
 
 
         this.sceneProperty().addListener((obs, oldScene, newScene) -> {
             if (newScene != null) {
+                newScene.getStylesheets().add(getClass().getResource("/SeekSlider.css").toExternalForm());
                 Stage stage = (Stage) newScene.getWindow();
                 if (stage != null) {
                     // Go fullscreen initially

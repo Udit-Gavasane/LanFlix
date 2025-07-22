@@ -1,0 +1,23 @@
+
+/* SeekSlider.css */
+
+.custom-slider .track {
+    -fx-background-color: rgba(20, 20, 20, 0.8);
+    -fx-background-radius: 4;
+    -fx-pref-height: 4px;
+}
+
+.custom-slider .thumb {
+    -fx-shape: "M 0 0 L 16 0 L 8 12 Z";
+    -fx-background-color: #FF9500;
+    -fx-scale-shape: false;
+    -fx-pref-width: 16;
+    -fx-pref-height: 12;
+    -fx-translate-y: -10px;
+    -fx-translate-x: -4px;
+}
+
+.custom-slider .filled-track {
+    -fx-background-color: #FF9500;
+    -fx-background-radius: 4;
+}
