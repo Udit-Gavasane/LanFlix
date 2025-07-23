@@ -19,6 +19,10 @@ import javafx.scene.text.TextAlignment;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
 import javafx.util.Duration;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Button;
+import javafx.stage.Stage;
+
 
 
 
@@ -30,6 +34,12 @@ public class VideoPlayerPane extends BorderPane {
     private final Label overlayTitleLabel = new Label();
     private PauseTransition hideControlsTimer = new PauseTransition(Duration.seconds(3));
 
+    // Add these as class fields
+    private Button watchPartyButton;
+    private WatchPartyDialog watchPartyDialog;
+    private String movieUrl;
+
+
 
     public VideoPlayerPane(String movieUrl, String movieTitle) {
         this(movieUrl, movieTitle, 0);  // default retryCount = 0
@@ -38,6 +48,8 @@ public class VideoPlayerPane extends BorderPane {
 
     public VideoPlayerPane(String movieUrl, String movieTitle, int retryCount) {
         this.retryCount = retryCount;
+        this.movieUrl = movieUrl;
+
         setStyle("-fx-background-color: black;");
 
         //Media media = new Media(movieUrl);
@@ -210,6 +222,13 @@ public class VideoPlayerPane extends BorderPane {
         controls.setPadding(new Insets(10));
         controls.setStyle("-fx-background-color: #222; -fx-border-color: #444;");
 
+        watchPartyButton = new Button("👥 Watch Party");
+        watchPartyButton.setStyle("-fx-background-color: #FF9500; -fx-text-fill: white; -fx-font-weight: bold;");
+        watchPartyButton.setOnAction(e -> showWatchPartyDialog());
+
+        // Add watchPartyButton to your controls HBox
+        controls.getChildren().add(watchPartyButton);
+
 
         VBox controlContainer = new VBox(5);
         controlContainer.setAlignment(Pos.BOTTOM_CENTER);
@@ -357,6 +376,23 @@ public class VideoPlayerPane extends BorderPane {
         });
 
         dialog.show();
+    }
+
+    // Add this method to your class
+    private void showWatchPartyDialog() {
+        try {
+            if (watchPartyDialog == null) {
+                watchPartyDialog = new WatchPartyDialog((Stage) getScene().getWindow(), movieUrl);
+            }
+            watchPartyDialog.show();
+        } catch (Exception e) {
+            e.printStackTrace();
+            Alert alert = new Alert(Alert.AlertType.ERROR);
+            alert.setTitle("Error");
+            alert.setHeaderText(null);
+            alert.setContentText("Failed to open Watch Party dialog");
+            alert.showAndWait();
+        }
     }
 
 
