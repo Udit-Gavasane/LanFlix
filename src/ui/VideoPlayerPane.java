@@ -22,8 +22,7 @@ import javafx.util.Duration;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Button;
 import javafx.stage.Stage;
-
-
+import server.PartyEvent;
 
 
 public class VideoPlayerPane extends BorderPane {
@@ -33,11 +32,16 @@ public class VideoPlayerPane extends BorderPane {
     private boolean userExitedFullscreen = false;
     private final Label overlayTitleLabel = new Label();
     private PauseTransition hideControlsTimer = new PauseTransition(Duration.seconds(3));
-
+    private MediaPlayer mediaPlayer;  // Move the existing mediaPlayer to be a class field
+    private PartyWebSocketClient wsClient;
     // Add these as class fields
     private Button watchPartyButton;
     private WatchPartyDialog watchPartyDialog;
     private String movieUrl;
+    private WatchPartyController partyController;
+    private String clientId;
+
+
 
 
 
@@ -54,7 +58,25 @@ public class VideoPlayerPane extends BorderPane {
 
         //Media media = new Media(movieUrl);
         Media media = new Media(java.net.URI.create(movieUrl).toString());
-        MediaPlayer mediaPlayer = new MediaPlayer(media);
+        //MediaPlayer mediaPlayer = new MediaPlayer(media);
+        this.mediaPlayer = new MediaPlayer(media);
+
+        mediaPlayer.setOnPlaying(() -> {
+            if (partyController != null) {
+                partyController.handlePlayerEvent(PartyEvent.EventType.PLAY, mediaPlayer.getCurrentTime().toSeconds());
+            }
+        });
+
+        mediaPlayer.setOnPaused(() -> {
+            if (partyController != null) {
+                partyController.handlePlayerEvent(PartyEvent.EventType.PAUSE, mediaPlayer.getCurrentTime().toSeconds());
+            }
+        });
+
+        // For seek events:
+
+
+
 
         mediaPlayer.setOnError(() -> {
             System.err.println("MediaPlayer error: " + mediaPlayer.getError());
@@ -92,10 +114,20 @@ public class VideoPlayerPane extends BorderPane {
             if (status == MediaPlayer.Status.PLAYING) {
                 mediaPlayer.pause();
                 playPauseBtn.setText("▶ Play");
+                if (partyController != null) {
+                    partyController.handlePlayerEvent(PartyEvent.EventType.PAUSE,
+                            mediaPlayer.getCurrentTime().toSeconds());
+                }
+
             } else {
                 mediaPlayer.play();
                 playPauseBtn.setText("⏸ Pause");
             }
+            if (partyController != null) {
+                partyController.handlePlayerEvent(PartyEvent.EventType.PLAY,
+                        mediaPlayer.getCurrentTime().toSeconds());
+            }
+
         });
 
         ProgressBar volumeProgress = new ProgressBar(1.0); // initial volume
@@ -189,12 +221,26 @@ public class VideoPlayerPane extends BorderPane {
             }
         });
 
+//        seekSlider.setOnMouseReleased(e -> {
+//            Duration total = mediaPlayer.getTotalDuration();
+//            if (total != null && !total.isUnknown()) {
+//                double seekTime = seekSlider.getValue() / 100.0 * total.toSeconds();
+//                mediaPlayer.seek(Duration.seconds(seekTime));
+//            }
+//            mediaPlayer.play();
+//            timePopup.setVisible(false);
+//        });
 
         seekSlider.setOnMouseReleased(e -> {
             Duration total = mediaPlayer.getTotalDuration();
             if (total != null && !total.isUnknown()) {
                 double seekTime = seekSlider.getValue() / 100.0 * total.toSeconds();
                 mediaPlayer.seek(Duration.seconds(seekTime));
+                if (partyController != null) {
+                    partyController.handlePlayerEvent(PartyEvent.EventType.SEEK, mediaPlayer.getCurrentTime().toSeconds());
+                }
+
+
             }
             mediaPlayer.play();
             timePopup.setVisible(false);
@@ -312,7 +358,7 @@ public class VideoPlayerPane extends BorderPane {
             hideLabel.play();
         });
 
-
+        setupWatchPartySync();
     }
 
     private void showPlaybackErrorDialog(Stage ownerStage, String movieUrl, String movieTitle) {
@@ -382,7 +428,7 @@ public class VideoPlayerPane extends BorderPane {
     private void showWatchPartyDialog() {
         try {
             if (watchPartyDialog == null) {
-                watchPartyDialog = new WatchPartyDialog((Stage) getScene().getWindow(), movieUrl);
+                watchPartyDialog = new WatchPartyDialog((Stage) getScene().getWindow(), movieUrl, this);
             }
             watchPartyDialog.show();
         } catch (Exception e) {
@@ -393,6 +439,30 @@ public class VideoPlayerPane extends BorderPane {
             alert.setContentText("Failed to open Watch Party dialog");
             alert.showAndWait();
         }
+    }
+
+    private void setupWatchPartySync() {
+        mediaPlayer.setOnPlaying(() -> {
+            if (wsClient != null) {
+                PartyEvent event = new PartyEvent(
+                        PartyEvent.EventType.PLAY,
+                        AppConfig.getUsername(),
+                        mediaPlayer.getCurrentTime().toSeconds()
+                );
+                wsClient.send(event.toJson());
+            }
+        });
+
+        mediaPlayer.setOnPaused(() -> {
+            if (wsClient != null) {
+                PartyEvent event = new PartyEvent(
+                        PartyEvent.EventType.PAUSE,
+                        AppConfig.getUsername(),
+                        mediaPlayer.getCurrentTime().toSeconds()
+                );
+                wsClient.send(event.toJson());
+            }
+        });
     }
 
 
@@ -409,4 +479,64 @@ public class VideoPlayerPane extends BorderPane {
             return "localhost";
         }
     }
+
+
+    public void handlePartyEvent(PartyEvent event) {
+        System.out.println("Received party event: " + event.getType() +
+                " from: " + event.getSenderId() +
+                " position: " + event.getPosition());
+
+        if (event.getSenderId().equals(clientId)) {
+            System.out.println("Ignoring own event");
+            return; // Ignore our own events
+        }
+
+        switch (event.getType()) {
+            case PLAY:
+                System.out.println("Playing video at position: " + event.getPosition());
+                mediaPlayer.seek(Duration.seconds(event.getPosition()));
+                mediaPlayer.play();
+                break;
+            case PAUSE:
+                System.out.println("Pausing video at position: " + event.getPosition());
+                mediaPlayer.seek(Duration.seconds(event.getPosition()));
+                mediaPlayer.pause();
+                break;
+            case SEEK:
+                System.out.println("Seeking to position: " + event.getPosition());
+                mediaPlayer.seek(Duration.seconds(event.getPosition()));
+                break;
+        }
+    }
+
+    public void setWebSocketClient(PartyWebSocketClient client) {
+        this.wsClient = client;
+    }
+
+
+    public void setPartyController(WatchPartyController controller) {
+        this.partyController = controller;
+        this.clientId = controller.getClientId();
+
+    }
+
+//    public void play() {
+//        if (mediaPlayer != null) {
+//            mediaPlayer.play();
+//        }
+//    }
+//
+//    public void pause() {
+//        if (mediaPlayer != null) {
+//            mediaPlayer.pause();
+//        }
+//    }
+//
+//    public void seek(double seconds) {
+//        if (mediaPlayer != null) {
+//            mediaPlayer.seek(Duration.seconds(seconds));
+//        }
+//    }
+
+
 }

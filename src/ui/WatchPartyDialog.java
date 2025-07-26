@@ -7,14 +7,6 @@ import javafx.scene.control.*;
 import javafx.scene.layout.VBox;
 import javafx.stage.Modality;
 import javafx.stage.Stage;
-import server.PartyEvent;
-import javafx.scene.Scene;
-import javafx.scene.control.*;
-import javafx.scene.layout.VBox;
-import javafx.stage.Modality;
-import javafx.stage.Stage;
-import javafx.geometry.Insets;
-import javafx.geometry.Pos;
 
 
 public class WatchPartyDialog extends Stage {
@@ -22,9 +14,11 @@ public class WatchPartyDialog extends Stage {
     private VBox mainContainer;
     private VBox partyView;
     private VBox joinView;
+    private final VideoPlayerPane player;
 
-    public WatchPartyDialog(Stage owner, String videoUrl) {
-        this.controller = new WatchPartyController(this, videoUrl);
+    public WatchPartyDialog(Stage owner, String videoUrl, VideoPlayerPane player) {
+        this.player = player;
+        this.controller = new WatchPartyController(this, videoUrl, player);
 
         initOwner(owner);
         initModality(Modality.APPLICATION_MODAL);

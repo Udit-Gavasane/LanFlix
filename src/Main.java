@@ -4,6 +4,7 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.image.Image;
 import javafx.stage.Stage;
+import server.WatchPartyWebSocketEndpoint;
 import ui.LoginPane;
 import ui.ServerIpPane;
 
@@ -11,9 +12,15 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 
 public class Main extends Application {
+
+    private WatchPartyWebSocketEndpoint wsServer;
+
     @Override
     public void start(Stage primaryStage) {
         // Set up stage first
+//        wsServer = new WatchPartyWebSocketEndpoint(8090);
+//        wsServer.start();
+
         MainSceneManager.init(primaryStage);
         primaryStage.setMaximized(true);
 
@@ -55,4 +62,17 @@ public class Main extends Application {
     public static void main(String[] args) {
         launch(args);
     }
+
+    @Override
+    public void stop() {
+        // Clean up WebSocket server on application shutdown
+        if (wsServer != null) {
+            try {
+                wsServer.stop();
+            } catch (Exception e) {
+                System.err.println("Error stopping WebSocket server: " + e.getMessage());
+            }
+        }
+    }
+
 }
