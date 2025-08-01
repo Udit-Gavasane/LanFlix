@@ -122,11 +122,15 @@ public class VideoPlayerPane extends BorderPane {
             } else {
                 mediaPlayer.play();
                 playPauseBtn.setText("⏸ Pause");
+                if (partyController != null) {
+                    partyController.handlePlayerEvent(PartyEvent.EventType.PLAY,
+                            mediaPlayer.getCurrentTime().toSeconds());
+                }
             }
-            if (partyController != null) {
-                partyController.handlePlayerEvent(PartyEvent.EventType.PLAY,
-                        mediaPlayer.getCurrentTime().toSeconds());
-            }
+//            if (partyController != null) {
+//                partyController.handlePlayerEvent(PartyEvent.EventType.PLAY,
+//                        mediaPlayer.getCurrentTime().toSeconds());
+//            }
 
         });
 

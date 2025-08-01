@@ -1,10 +1,17 @@
 package ui;
 
+import core.AppConfig;
 import javafx.scene.input.Clipboard;
 import javafx.scene.input.ClipboardContent;
 import server.PartyEvent;
 import server.WatchPartyServer;
 import server.WatchPartyWebSocketEndpoint;
+
+import java.io.BufferedReader;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 
 
 public class WatchPartyController {
@@ -36,12 +43,19 @@ public class WatchPartyController {
     public void createParty() {
         try {
             // Start WebSocket server
-            WatchPartyWebSocketEndpoint wsServer = new WatchPartyWebSocketEndpoint(8090);
-            wsServer.start();
-            System.out.println("WebSocket server started on port 8090");
+//            WatchPartyWebSocketEndpoint wsServer = new WatchPartyWebSocketEndpoint(8090);
+//            wsServer.start();
+//            System.out.println("WebSocket server started on port 8090");
 
             // Create party
-            currentPartyCode = server.createParty(clientId, videoUrl);
+            //currentPartyCode = server.createParty(clientId, videoUrl);
+            String serverIp = AppConfig.getServerIp();
+            URL url = new URL("http://" + serverIp + ":8080/createParty?clientId=" + clientId + "&videoUrl=" + URLEncoder.encode(videoUrl, "UTF-8"));
+            HttpURLConnection conn = (HttpURLConnection) url.openConnection();
+            conn.setRequestMethod("GET");
+            BufferedReader reader = new BufferedReader(new InputStreamReader(conn.getInputStream()));
+            currentPartyCode = reader.readLine();
+            reader.close();
 
             // Create WebSocket client for host as well
             wsClient = new PartyWebSocketClient(currentPartyCode, this);
@@ -52,16 +66,26 @@ public class WatchPartyController {
             dialog.showPartyView(currentPartyCode);
 
             // Send join request as host
-            PartyEvent joinRequest = new PartyEvent(
-                    PartyEvent.EventType.JOIN_REQUEST,
-                    clientId,
-                    0.0
-            );
-            wsClient.send(joinRequest.toJson());
+//            PartyEvent joinRequest = new PartyEvent(
+//                    PartyEvent.EventType.JOIN_REQUEST,
+//                    clientId,
+//                    0.0
+//            );
+//            wsClient.send(joinRequest.toJson());
         } catch (Exception e) {
             e.printStackTrace();
             dialog.showError("Failed to create party: " + e.getMessage());
         }
+    }
+
+    public void onWebSocketReady() {
+        // Now that connection is open, we can safely send the join request
+        PartyEvent joinRequest = new PartyEvent(
+                PartyEvent.EventType.JOIN_REQUEST,
+                clientId,
+                0.0
+        );
+        wsClient.send(joinRequest.toJson());
     }
 
 

@@ -20,6 +20,8 @@ public class PartyWebSocketClient extends WebSocketClient {
 
     @Override
     public void onOpen(ServerHandshake handshakedata) {
+        System.out.println("WebSocket connected to party!");
+        controller.onWebSocketReady();
         Platform.runLater(() -> controller.handleConnectionEstablished());
     }
 

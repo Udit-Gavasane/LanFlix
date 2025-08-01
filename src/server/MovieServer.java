@@ -6,12 +6,14 @@ import com.sun.net.httpserver.HttpHandler;
 
 import java.io.*;
 import java.net.InetSocketAddress;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
+import java.util.*;
 import java.util.logging.Handler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import static server.WatchPartyServer.getInstance;
 
 
 public class MovieServer {
@@ -67,6 +69,20 @@ public class MovieServer {
         server.createContext("/list", new MovieListHandler());
         server.createContext("/login", new AuthHandler());
         server.createContext("/signup", new SignupHandler());
+        server.createContext("/createParty", exchange -> {
+            if ("GET".equals(exchange.getRequestMethod())) {
+                Map<String, String> params = parseQuery(exchange.getRequestURI().getQuery());
+                String clientId = params.get("clientId");
+                String videoUrl = params.get("videoUrl");
+
+                String partyCode = getInstance().createParty(clientId, videoUrl);
+
+                byte[] response = partyCode.getBytes(StandardCharsets.UTF_8);
+                exchange.sendResponseHeaders(200, response.length);
+                exchange.getResponseBody().write(response);
+                exchange.close();
+            }
+        });
         server.setExecutor(java.util.concurrent.Executors.newCachedThreadPool()); // default executor
         server.start();
 
@@ -188,6 +204,17 @@ public class MovieServer {
 
             exchange.close();
         }
+    }
+
+    private static Map<String, String> parseQuery(String query) {
+        Map<String, String> params = new HashMap<>();
+        for (String param : query.split("&")) {
+            String[] pair = param.split("=");
+            if (pair.length > 1) {
+                params.put(pair[0], URLDecoder.decode(pair[1], StandardCharsets.UTF_8));
+            }
+        }
+        return params;
     }
 
 }

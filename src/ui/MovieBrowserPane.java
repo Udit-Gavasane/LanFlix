@@ -231,6 +231,7 @@ public class MovieBrowserPane extends VBox {
                 );
 
                 playButton.setOnAction(e -> {
+                    //System.out.println("🎥 Movie URL: " + movieUrl);
                     MainSceneManager.setView(new VideoPlayerPane(movieUrl, movieName));
 
                 });
