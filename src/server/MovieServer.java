@@ -46,8 +46,7 @@ public class MovieServer {
 
     private static final int PORT = 8080;
 
-    public static final String MOVIE_DIR = System.getProperty("user.home") + File.separator +
-            "Videos" + File.separator + "LanFlix Movies";
+    public static final String MOVIE_DIR = "D:/Lanflix Movies";
 
 
     public static void start() throws IOException {
